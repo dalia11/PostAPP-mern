@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Button, Card, Modal } from "react-bootstrap";
 import axios, { Authenticate } from "../axios.js";
 import { Link } from "react-router-dom";
+import Header from '../components/Header.js'
 
 const Main = () => {
     const [post, setpost] = useState('');
@@ -9,6 +10,7 @@ const Main = () => {
     const [editPost, seteditPost] = useState('');
     const [editID, seteditID] = useState('');
     const [edit, setedit] = useState(false);
+    const [error, seterror] = useState("");
 
     useEffect(() => {
 
@@ -56,6 +58,7 @@ const Main = () => {
             })
     }
     const updatePost = () => {
+        setpost("")
         axios.post('api/posts', { title: post })
             .then(response => {
                 setposting(posting => {
@@ -66,6 +69,7 @@ const Main = () => {
             })
             .catch(function (error) {
                 console.log(error)
+                seterror(error.response.data.msg)
             })
     }
     var postings = []
@@ -75,44 +79,35 @@ const Main = () => {
                 <p className="col">{el.title}</p>
                 <Button id={el._id} className="col-2 btn btn-primary m-1" onClick={e => deletePost(e.currentTarget.id)}>Delete</Button>
                 <Button id={el._id} className="col-2 btn btn-primary m-1" onClick={e => {
-                    seteditID(e.currentTarget.id); setedit(true);
-                    posting.map(l => {
-                        if (l.id == el.id) {
-                            seteditPost(l.title)
-                        }
-                    })
+                    seteditID(e.currentTarget.id); setedit(true); seteditPost(el.title)
                 }}>Edit</Button>
             </div>]
         })
     }
 
-
     return (
         <>
-            <div  style={{ textAlign: 'right'}} className="mr-4">
-                <div  style={{ display:'inline-flex',alignItems:'baseline',flexDirection:'column',width:'fit-content'}}>
-                <Link to="/map">Go to ARCGIS map</Link>
-                <Link to="/Leafletmap">Go to leaflet map</Link>
-                </div>
-            </div>
+            <Header />
             <div className="container mt-5">
-                <Form.Group as={Row}>
-                    <Form.Label column sm="2">Post something:</Form.Label>
-                    <Col>
-                        <Form.Control
-                            type="text"
-                            onChange={(e) => {
-                                setpost(e.target.value);
-                            }}
-                            style={{ height: '80px' }}
-                        />
-                    </Col>
-                    <Button className="btn btn-primary" column sm="2" onClick={updatePost}>Post</Button>
+                <Form.Group as={Col}>
+                    <Form.Label column >What's on your mind?</Form.Label>
+
+                    <Form.Control
+                        placeholder="Write Something..."
+                        type="text"
+                        onChange={(e) => {
+                            seterror("")
+                            setpost(e.target.value);
+                        }}
+                        value={post}
+                        style={{ height: '80px' }}
+                    />
+                    <p style={{ color: 'red', fontSize: '12px' }}>{error}</p>
+                    <Button className="btn btn-primary mt-2" onClick={updatePost}>Post</Button>
                 </Form.Group>
-                <Card style={{ height: '80vh' }} className="p-4">
+                <Card style={{ height: '60vh', overflow: 'scroll' }} className="p-4">
                     {postings}
                 </Card>
-                <Link to="/Login">Logout</Link>
                 <Modal show={edit} onHide={() => setedit(false)}>
                     <Modal.Header>Edit Post</Modal.Header>
                     <Modal.Body><Form.Control type="text" value={editPost} onChange={e => { seteditPost(e.target.value) }} /></Modal.Body>
